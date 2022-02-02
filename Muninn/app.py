@@ -1,9 +1,14 @@
 import os
-from dotenv
+from dotenv import load_dotenv
 
 from flask import Flask, jsonify
 
+import mariadb
 import random
+
+load_dotenv()
+USER=os.getenv("USER")
+PWD=os.getenv("PASSWORD")
 
 app = Flask(__name__)
 
@@ -14,7 +19,7 @@ def get_connection():
 			password=PWD,
 			host='localhost',
 			port=3306,
-			database='ffxiv',
+			database='Muninn',
 			autocommit=True)
 	except mariadb.Error as e:
 		log(f"ERR: Unable to connect to MariaDB: {e}")
@@ -23,8 +28,8 @@ def get_connection():
 		return con
 
 @app.route("/")
-def hello_world():
-	return "<p>Hello World!<p>"
+def first_page():
+	return jsonify("{}")
 
 @app.route("/json/")
 def send_json():
