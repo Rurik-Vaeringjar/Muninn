@@ -29,7 +29,8 @@ def get_connection():
 
 @app.route("/")
 def first_page():
-	return jsonify("{}")
+	nothing = []
+	return jsonify(nothing)
 
 @app.route("/json/")
 def send_json():
@@ -38,4 +39,24 @@ def send_json():
 			{'name': "Quailow", 'censoredForGit': None},
 			{'name': "Ruri", 'censoredForGit': "False"}]
 	return jsonify(json)
+
+@app.route("/items/<item>")
+def get_item(item):
+	con = get_connection()
+	cur = con.cursor()
+	cur.execute("SELECT id, description, type, tele, weight, stack, wikiaThumbnail FROM items WHERE name=?", (item,))
+	id_, description, type_, tele, weight, stack, wikiaThumbnail = cur.fetchone()
+	item_dict = {	'name': item, 'id': id_, 'description': description, 'type': type_, 
+					'tele': True if bool(tele) else False, 'weight': weight, 'stack': stack,
+					'wikiaThumbnail': wikiaThumbnail}
+	if type_ == "food":
+		cur.execute("SELECT health, stamina, healing, duration FROM food WHERE id=?", (id_,))
+		health, stamina, healing, duration = cur.fetchone()
+		item_dict['health'] = health
+		item_dict['stamina'] = stamina
+		item_dict['healing'] = f"{healing}/tick"
+		item_dict['duration'] = f"{duration}s"
+	return jsonify(item_dict)
 			
+if __name__ == "__main__":
+	Flask.run(app)
