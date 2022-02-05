@@ -44,9 +44,9 @@ def send_json():
 def get_item(item):
 	con = get_connection()
 	cur = con.cursor()
-	cur.execute("SELECT id, description, type, tele, weight, stack, wikiaThumbnail FROM items WHERE name=?", (item,))
-	id_, description, type_, tele, weight, stack, wikiaThumbnail = cur.fetchone()
-	item_dict = {	'name': item, 'id': id_, 'description': description, 'type': type_, 
+	cur.execute("SELECT id, name, description, type, tele, weight, stack, wikiaThumbnail FROM items WHERE name=?", (item,))
+	id_, name, description, type_, tele, weight, stack, wikiaThumbnail = cur.fetchone()
+	item_dict = {	'name': name, 'id': id_, 'description': description, 'type': type_, 
 					'tele': True if bool(tele) else False, 'weight': weight, 'stack': stack,
 					'wikiaThumbnail': wikiaThumbnail}
 	if type_ == "food":
