@@ -35,15 +35,7 @@ def first_page():
 	nothing = []
 	return jsonify(nothing)
 
-@app.route("/json/")
-def send_json():
-	json = [{'name': "Eltimablo", 'censoredForGit': "True"},
-			{'name': "Sylvan", 'censoredForGit': "True" if bool(random.getrandbits(1)) else "False"},
-			{'name': "Quailow", 'censoredForGit': None},
-			{'name': "Ruri", 'censoredForGit': "False"}]
-	return jsonify(json)
-
-@app.route("/items/<item>")
+@app.route("/Muninn/items/<item>")
 def get_item(item):
 	con = get_connection()
 	cur = con.cursor()
