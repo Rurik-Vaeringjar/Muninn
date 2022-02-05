@@ -1,7 +1,10 @@
 import os
 from dotenv import load_dotenv
 
+
 from flask import Flask, jsonify
+
+import json
 
 import mariadb
 import random
@@ -44,8 +47,8 @@ def send_json():
 def get_item(item):
 	con = get_connection()
 	cur = con.cursor()
-	cur.execute("SELECT id, name, description, type, tele, weight, stack, wikiaThumbnail FROM items WHERE name=?", (item,))
-	id_, name, description, type_, tele, weight, stack, wikiaThumbnail = cur.fetchone()
+	cur.execute("SELECT id, name, description, type, tele, weight, stack, wikiaThumbnail, craftable FROM items WHERE name=?", (item,))
+	id_, name, description, type_, tele, weight, stack, wikiaThumbnail, craftable = cur.fetchone()
 	item_dict = {	'name': name, 'id': id_, 'description': description, 'type': type_, 
 					'tele': True if bool(tele) else False, 'weight': weight, 'stack': stack,
 					'wikiaThumbnail': wikiaThumbnail}
@@ -54,8 +57,15 @@ def get_item(item):
 		health, stamina, healing, duration = cur.fetchone()
 		item_dict['health'] = health
 		item_dict['stamina'] = stamina
-		item_dict['healing'] = f"{healing}/tick"
-		item_dict['duration'] = f"{duration}s"
+		item_dict['healing'] = healing
+		item_dict['duration'] = duration
+	
+	if craftable:
+		cur.execute("SELECT source, lvl, mats FROM craftable WHERE id=?", (id_,))
+		source, lvl, mats = cur.fetchone()
+		temp_dict = {'source': source, 'lvl': lvl, 'mats': json.loads(mats)}
+		item_dict['craftable'] = temp_dict
+
 	return jsonify(item_dict)
 			
 if __name__ == "__main__":
