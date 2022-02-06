@@ -57,6 +57,13 @@ def get_item(item):
 		source, lvl, mats = cur.fetchone()
 		temp_dict = {'source': source, 'lvl': lvl, 'mats': json.loads(mats)}
 		item_dict['craftable'] = temp_dict
+	else:
+		cur.execute("SELECT source, chance, location FROM dropable WHERE id=?", (id_,))
+		sources = []
+		for source, chance, location in cur:
+			temp_dict = {'source': source, 'chance': chance, 'location': location}
+			sources.append(temp_dict)
+		item_dict['sources'] = sources
 
 	return jsonify(item_dict)
 			
