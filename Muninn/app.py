@@ -2,7 +2,7 @@ import os
 from dotenv import load_dotenv
 
 
-from flask import Flask, jsonify
+from flask import Flask, jsonify, abort
 
 import json
 
@@ -39,32 +39,37 @@ def first_page():
 def get_item(item):
 	con = get_connection()
 	cur = con.cursor()
-	cur.execute("SELECT id, name, description, type, tele, weight, stack, wikiaThumbnail, craftable FROM items WHERE name=?", (item,))
-	id_, name, description, type_, tele, weight, stack, wikiaThumbnail, craftable = cur.fetchone()
-	item_dict = {	'name': name, 'id': id_, 'description': description, 'type': type_, 
-					'tele': True if bool(tele) else False, 'weight': weight, 'stack': stack,
-					'wikiaThumbnail': wikiaThumbnail}
-	if type_ == "food":
-		cur.execute("SELECT health, stamina, healing, duration FROM food WHERE id=?", (id_,))
-		health, stamina, healing, duration = cur.fetchone()
-		item_dict['health'] = health
-		item_dict['stamina'] = stamina
-		item_dict['healing'] = healing
-		item_dict['duration'] = duration
-	
-	if craftable:
-		cur.execute("SELECT source, lvl, mats FROM craftable WHERE id=?", (id_,))
-		source, lvl, mats = cur.fetchone()
-		temp_dict = {'source': source, 'lvl': lvl, 'mats': json.loads(mats)}
-		item_dict['craftable'] = temp_dict
+	cur.execute("SELECT id, name, description, type, tele, weight, stack, wikiaThumbnail, craftable, wikiaUrl FROM items WHERE name=?", (item,))
+	try:
+		id_, name, description, type_, tele, weight, stack, wikiaThumbnail, craftable, wikiaUrl = cur.fetchone()
+	except:
+		item_dict = {'code': 404, 'error': "No Result"}
 	else:
-		cur.execute("SELECT source, chance, location FROM dropable WHERE id=?", (id_,))
-		sources = []
-		for source, chance, location in cur:
-			temp_dict = {'source': source, 'chance': chance, 'location': location}
-			sources.append(temp_dict)
-		item_dict['sources'] = sources
+		item_dict = {	'name': name, 'id': id_, 'description': description, 'type': type_, 
+						'tele': True if bool(tele) else False, 'weight': weight, 'stack': stack,
+						'wikiaThumbnail': wikiaThumbnail, 'wikiaUrl': wikiaUrl}
+		if type_ == "food":
+			cur.execute("SELECT health, stamina, healing, duration FROM food WHERE id=?", (id_,))
+			health, stamina, healing, duration = cur.fetchone()
+			item_dict['health'] = health
+			item_dict['stamina'] = stamina
+			item_dict['healing'] = healing
+			item_dict['duration'] = duration
+	
+		if craftable:
+			cur.execute("SELECT source, lvl, mats FROM craftable WHERE id=?", (id_,))
+			source, lvl, mats = cur.fetchone()
+			temp_dict = {'source': source, 'lvl': lvl, 'mats': json.loads(mats)}
+			item_dict['craftable'] = temp_dict
+		else:
+			cur.execute("SELECT source, chance, location FROM dropable WHERE id=?", (id_,))
+			sources = []
+			for source, chance, location in cur:
+				temp_dict = {'source': source, 'chance': chance, 'location': location}
+				sources.append(temp_dict)
+			item_dict['sources'] = sources
 
+	con.close()
 	return jsonify(item_dict)
 			
 if __name__ == "__main__":
