@@ -71,6 +71,25 @@ def get_item(item):
 
 	con.close()
 	return jsonify(item_dict)
+
+@app.route("/Muninn/creatures/<creature>")
+def get_creature(creature):
+	con = get_connection()
+	cur = con.cursor()
+	cur.execute("SELECT id, name, faction, biome, health, veryweak, weak, resist, veryresist, immune, stagger, wikiaThumbnail, wikiaUrl FROM creatures WHERE name=?",
+				(creature,))
+	try:
+		id_, name, faction, biome, health, veryweak, weak, resist, veryresist, immune, stagger, wikiaThumbnail, wikiaUrl = cur.fetchone()
+	except:
+		creature_dict = {'code': 404, 'error': "No Result"}
+	else:
+		creature_dict = {	'name': name, 'id': id_, 'faction': faction, 'biome': biome, 'health': health, 
+							'veryweak': veryweak, 'weak': weak, 'resist': resist, 'veryresist': veryresist, 'immune': immune,
+							'stagger': stagger, 'wikiaThumbnail': wikiaThumbnail, 'wikiaUrl': wikiaUrl}
+	
+	con.close()
+	return jsonify(creature_dict)
+
 			
 if __name__ == "__main__":
 	Flask.run(app)
