@@ -9,6 +9,8 @@ import json
 import mariadb
 import random
 
+from tools.felix_functions import fix_item, fix_mob
+
 load_dotenv()
 USER=os.getenv("USER")
 PWD=os.getenv("PASSWORD")
@@ -22,8 +24,7 @@ def get_connection():
 			password=PWD,
 			host='localhost',
 			port=3306,
-			database='Muninn',
-			autocommit=True)
+			database='Muninn')
 	except mariadb.Error as e:
 		log(f"ERR: Unable to connect to MariaDB: {e}")
 		return None
@@ -37,9 +38,12 @@ def first_page():
 
 @app.route("/Muninn/items/<item>")
 def get_item(item):
+	item = item.lower()
+	item = fix_item(item)
+
 	con = get_connection()
 	cur = con.cursor()
-	cur.execute("SELECT id, name, description, type, tele, weight, stack, wikiaThumbnail, craftable, wikiaUrl FROM items WHERE name=?", (item,))
+	cur.execute("SELECT id, name, description, type, tele, weight, stack, wikiaThumbnail, craftable, wikiaUrl FROM items WHERE name=? OR id=?", (item, item))
 	try:
 		id_, name, description, type_, tele, weight, stack, wikiaThumbnail, craftable, wikiaUrl = cur.fetchone()
 	except:
@@ -72,23 +76,26 @@ def get_item(item):
 	con.close()
 	return jsonify(item_dict)
 
-@app.route("/Muninn/creatures/<creature>")
-def get_creature(creature):
+@app.route("/Muninn/mobs/<mob>")
+def get_mob(mob):
+	mob = mob.lower()
+	mob = fix_mob(mob)
+
 	con = get_connection()
 	cur = con.cursor()
-	cur.execute("SELECT id, name, faction, biome, health, veryweak, weak, resist, veryresist, immune, stagger, wikiaThumbnail, wikiaUrl FROM creatures WHERE name=?",
-				(creature,))
+	cur.execute("SELECT id, name, faction, biome, health, veryweak, weak, resist, veryresist, immune, stagger, wikiaThumbnail, wikiaUrl FROM mobs WHERE name=? OR id=?",
+				(mob, mob))
 	try:
 		id_, name, faction, biome, health, veryweak, weak, resist, veryresist, immune, stagger, wikiaThumbnail, wikiaUrl = cur.fetchone()
 	except:
-		creature_dict = {'code': 404, 'error': "No Result"}
+		mob_dict = {'code': 404, 'error': "No Result"}
 	else:
-		creature_dict = {	'name': name, 'id': id_, 'faction': faction, 'biome': biome, 'health': health, 
+		mob_dict = {	'name': name, 'id': id_, 'faction': faction, 'biome': biome, 'health': health, 
 							'veryweak': veryweak, 'weak': weak, 'resist': resist, 'veryresist': veryresist, 'immune': immune,
 							'stagger': stagger, 'wikiaThumbnail': wikiaThumbnail, 'wikiaUrl': wikiaUrl}
 	
 	con.close()
-	return jsonify(creature_dict)
+	return jsonify(mob_dict)
 
 			
 if __name__ == "__main__":
