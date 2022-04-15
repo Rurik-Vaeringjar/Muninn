@@ -52,6 +52,8 @@ def get_item(item):
 		item_dict = {	'name': name, 'id': id_, 'description': description, 'type': type_, 
 						'tele': True if bool(tele) else False, 'weight': weight, 'stack': stack,
 						'wikiaThumbnail': wikiaThumbnail, 'wikiaUrl': wikiaUrl}
+		
+		#present extra information from food table
 		if type_ == "food":
 			cur.execute("SELECT health, stamina, healing, duration FROM food WHERE id=?", (id_,))
 			health, stamina, healing, duration = cur.fetchone()
@@ -59,7 +61,9 @@ def get_item(item):
 			item_dict['stamina'] = stamina
 			item_dict['healing'] = healing
 			item_dict['duration'] = duration
+
 	
+		#present information on obtaining item.
 		if craftable:
 			cur.execute("SELECT source, lvl, mats FROM craftable WHERE id=?", (id_,))
 			source, lvl, mats = cur.fetchone()
